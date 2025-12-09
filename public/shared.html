@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Note</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.4s ease-out;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="glass rounded-3xl p-8 w-full max-w-3xl animate-slide-in">
+        <div id="noteContent">
+            <div class="text-center text-white">
+                <p class="text-lg">📝 Đang tải ghi chú...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadSharedNote() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const shareId = urlParams.get('id');
+
+            if (!shareId) {
+                document.getElementById('noteContent').innerHTML = `
+                    <div class="text-center text-white">
+                        <p class="text-xl mb-2">❌ Không tìm thấy ghi chú</p>
+                        <p class="text-white/80">Link không hợp lệ</p>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/notes/shared/${shareId}`);
+                const data = await res.json();
+
+                if (data.error) {
+                    document.getElementById('noteContent').innerHTML = `
+                        <div class="text-center text-white">
+                            <p class="text-xl mb-2">❌ Không tìm thấy ghi chú</p>
+                            <p class="text-white/80">${data.error}</p>
+                        </div>
+                    `;
+                } else {
+                    const date = new Date(data.createdAt).toLocaleDateString('vi-VN');
+                    document.getElementById('noteContent').innerHTML = `
+                        <div class="text-white">
+                            <div class="flex items-center justify-between mb-6">
+                                <span class="text-sm bg-white/20 px-4 py-2 rounded-full">📅 ${date}</span>
+                            </div>
+                            <h1 class="text-3xl font-bold mb-6">${escapeHtml(data.title)}</h1>
+                            <div class="text-lg leading-relaxed whitespace-pre-wrap">${escapeHtml(data.content)}</div>
+                            <div class="mt-8 pt-6 border-t border-white/20">
+                                <p class="text-sm text-white/60 text-center">
+                                    Được chia sẻ từ Notes App ✨
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById('noteContent').innerHTML = `
+                    <div class="text-center text-white">
+                        <p class="text-xl mb-2">❌ Lỗi kết nối</p>
+                        <p class="text-white/80">Không thể tải ghi chú</p>
+                    </div>
+                `;
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        loadSharedNote();
+    </script>
+</body>
+
+</html>

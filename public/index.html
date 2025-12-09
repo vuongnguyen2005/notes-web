@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes App - Modern & Beautiful</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .glass-dark {
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-slide-in {
+      animation: slideIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .note-card {
+      transition: all 0.3s ease;
+    }
+
+    .note-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(102, 126, 234, 0.5);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(102, 126, 234, 0.7);
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 12px;
+      color: white;
+      font-weight: 500;
+      z-index: 1000;
+      animation: slideIn 0.4s ease-out;
+    }
+
+    .toast-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .toast-error {
+      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Auth Screen -->
+  <div id="authScreen" class="min-h-screen flex items-center justify-center p-4">
+    <div class="glass rounded-3xl p-8 w-full max-w-md animate-slide-in">
+      <h1 class="text-4xl font-bold text-white text-center mb-2">✨ Notes App</h1>
+      <p class="text-white text-center opacity-80 mb-8">Quản lý ghi chú thông minh</p>
+
+      <!-- Login Form -->
+      <div id="loginForm">
+        <h2 class="text-2xl font-semibold text-white mb-6">Đăng nhập</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="text-white text-sm font-medium block mb-2">Email</label>
+            <input id="loginEmail" type="email"
+              class="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
+              placeholder="your@email.com">
+          </div>
+          <div>
+            <label class="text-white text-sm font-medium block mb-2">Mật khẩu</label>
+            <input id="loginPassword" type="password"
+              class="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
+              placeholder="••••••••">
+          </div>
+          <button onclick="login()" class="w-full btn-primary text-white font-semibold py-3 rounded-xl">
+            Đăng nhập
+          </button>
+        </div>
+        <p class="text-white text-center mt-6">
+          Chưa có tài khoản?
+          <button onclick="showRegister()" class="font-semibold underline">Đăng ký ngay</button>
+        </p>
+      </div>
+
+      <!-- Register Form -->
+      <div id="registerForm" class="hidden">
+        <h2 class="text-2xl font-semibold text-white mb-6">Đăng ký</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="text-white text-sm font-medium block mb-2">Email</label>
+            <input id="registerEmail" type="email"
+              class="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
+              placeholder="your@email.com">
+          </div>
+          <div>
+            <label class="text-white text-sm font-medium block mb-2">Mật khẩu</label>
+            <input id="registerPassword" type="password"
+              class="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
+              placeholder="••••••••">
+          </div>
+          <button onclick="register()" class="w-full btn-primary text-white font-semibold py-3 rounded-xl">
+            Đăng ký
+          </button>
+        </div>
+        <p class="text-white text-center mt-6">
+          Đã có tài khoản?
+          <button onclick="showLogin()" class="font-semibold underline">Đăng nhập</button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes Dashboard -->
+  <div id="notesScreen" class="hidden min-h-screen p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-4xl font-bold text-white mb-2">📝 Ghi chú của tôi</h1>
+          <p class="text-white/80" id="userEmail"></p>
+        </div>
+        <button onclick="logout()"
+          class="glass text-white px-6 py-3 rounded-xl font-medium hover:bg-white/20 transition">
+          Đăng xuất
+        </button>
+      </div>
+
+      <!-- Create Note Card -->
+      <div class="glass-dark rounded-2xl p-6 mb-8 animate-slide-in">
+        <h2 class="text-xl font-semibold text-white mb-4">✍️ Tạo ghi chú mới</h2>
+        <div class="space-y-4">
+          <input id="noteTitle" type="text"
+            class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            placeholder="Tiêu đề...">
+          <textarea id="noteContent" rows="4"
+            class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
+            placeholder="Nội dung ghi chú..."></textarea>
+          <button onclick="createNote()" class="btn-primary text-white px-8 py-3 rounded-xl font-semibold">
+            💾 Lưu ghi chú
+          </button>
+        </div>
+      </div>
+
+      <!-- Notes List -->
+      <div id="notesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Notes will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="glass-dark rounded-2xl p-8 w-full max-w-2xl mx-4 animate-slide-in">
+      <h2 class="text-2xl font-bold text-white mb-6">✏️ Chỉnh sửa ghi chú</h2>
+      <div class="space-y-4">
+        <input id="editTitle" type="text"
+          class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400">
+        <textarea id="editContent" rows="6"
+          class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"></textarea>
+        <div class="flex gap-4">
+          <button onclick="saveEdit()" class="flex-1 btn-primary text-white py-3 rounded-xl font-semibold">
+            💾 Lưu thay đổi
+          </button>
+          <button onclick="closeEditModal()"
+            class="flex-1 bg-white/10 text-white py-3 rounded-xl font-semibold hover:bg-white/20 transition">
+            ❌ Hủy
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
